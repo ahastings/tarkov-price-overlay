@@ -1,4 +1,5 @@
 $ErrorActionPreference = 'Stop'
+$env:CARGO_TARGET_DIR = Join-Path $env:RUNNER_TEMP 'tpo-target'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $repoRoot
 git diff --exit-code $env:FEATURE_REVISION -- tarkov-price-overlay

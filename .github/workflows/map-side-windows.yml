@@ -17,9 +17,8 @@ jobs:
     runs-on: windows-2022
     timeout-minutes: 40
     env:
-      CARGO_BUILD_JOBS: 4
-      CARGO_TARGET_DIR: ${{ runner.temp }}\tpo-target
-      FEATURE_REVISION: 73767199994d85b3ee49f4d9662b6e5641027232
+      CARGO_BUILD_JOBS: '4'
+      FEATURE_REVISION: '73767199994d85b3ee49f4d9662b6e5641027232'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
