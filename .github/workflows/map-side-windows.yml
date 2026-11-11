@@ -1,0 +1,42 @@
+name: Windows map-side build
+
+on:
+  push:
+    branches: [build/map-side-layout]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: map-side-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 40
+    env:
+      CARGO_BUILD_JOBS: 4
+      CARGO_TARGET_DIR: ${{ runner.temp }}\tpo-target
+      FEATURE_REVISION: 73767199994d85b3ee49f4d9662b6e5641027232
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: tarkov-price-overlay/package-lock.json
+      - name: Verify feature source and build Windows app
+        shell: pwsh
+        run: ./ci/build-map-side.ps1
+      - name: Upload native app and build information
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tarkov-map-side-windows
+          path: ${{ runner.temp }}/map-side-artifact/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
