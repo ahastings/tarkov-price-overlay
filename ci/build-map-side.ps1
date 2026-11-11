@@ -52,6 +52,21 @@ foreach ($crate in $packages.Keys) {
     $pattern = '(?m)^' + [regex]::Escape($crate) + '\s*=\s*(\{\s*version\s*=\s*)?"2"'
     $manifest = [regex]::Replace($manifest, $pattern, ($crate + ' = ${1}"~' + $minor + '"'))
 }
+# Keep Tauri's internal crates on the matching 2.11.6 release family as well.
+# Newer semver-compatible runtime crates changed APIs used by older tauri.
+# Versions come from tauri-apps/tauri's tauri-v2.11.6 release manifests.
+$manifest = $manifest.Replace('tauri-build = { version = "2"', 'tauri-build = { version = "=2.6.3"')
+$internalPins = @'
+tauri-macros = "=2.6.3"
+tauri-codegen = "=2.6.3"
+tauri-utils = "=2.9.3"
+tauri-runtime = "=2.11.3"
+tauri-runtime-wry = "=2.11.4"
+tauri-plugin = "=2.6.3"
+
+[dependencies]
+'@
+$manifest = $manifest.Replace('[dependencies]', $internalPins)
 try {
     [IO.File]::WriteAllText($manifestPath, $manifest, [Text.UTF8Encoding]::new($false))
     cargo update --manifest-path src-tauri/Cargo.toml
@@ -67,6 +82,7 @@ New-Item -ItemType Directory -Path $artifactDir -Force | Out-Null
 $binary = Join-Path $env:CARGO_TARGET_DIR 'release/tarkov-price-overlay.exe'
 Copy-Item -LiteralPath $binary -Destination (Join-Path $artifactDir 'Tarkov Price Overlay.exe')
 Copy-Item -LiteralPath (Join-Path $sourceRoot 'LICENSE') -Destination (Join-Path $artifactDir 'LICENSE.txt')
+Copy-Item -LiteralPath (Join-Path $sourceRoot 'src-tauri/Cargo.lock') -Destination (Join-Path $artifactDir 'Cargo.lock')
 $metadata = [ordered]@{
     repository = $env:GITHUB_REPOSITORY
     featureRevision = $env:FEATURE_REVISION
